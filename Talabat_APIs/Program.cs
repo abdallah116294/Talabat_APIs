@@ -27,15 +27,30 @@ namespace Talabat_APIs
             var app = builder.Build();
             #region Update DataBase
             //Create obj from StoreContext to use it in the application
-           // StoreContext storeContext = new StoreContext();
-           //  await  storeContext.Database.MigrateAsync(); // This will apply any pending migrations to the database
-             using  var Scope = app.Services.CreateScope();//Group of services that can be used to resolve dependencies
-             var Serives = Scope.ServiceProvider; // Get the service provider from the scope
-             var DbContext = Serives.GetRequiredService<StoreContext>(); // Get the StoreContext from the service provider
-             await DbContext.Database.MigrateAsync(); // Apply any pending migrations to the database
-             
-            #endregion
+            // StoreContext storeContext = new StoreContext();
+            //  await  storeContext.Database.MigrateAsync(); // This will apply any pending migrations to the database
+            //use try and catch to handle any exceptions that may occur during the migration process
+            using var Scope = app.Services.CreateScope();//Group of services that can be used to resolve dependencies
+            var Serives = Scope.ServiceProvider; // Get the service provider from the scope
+           
+            //create objec from LoggerFactor 
+             var LoggerFactory = Serives.GetRequiredService<ILoggerFactory>(); // Get the logger factory from the service provider
+            try
+            {
+                var DbContext = Serives.GetRequiredService<StoreContext>(); // Get the StoreContext from the service provider
+                await DbContext.Database.MigrateAsync(); // Apply any pending migrations to the database
+                await StoreContextSeed.SeedAsync(DbContext);
+            }
+            catch (Exception ex)
+            {
+                var logger =LoggerFactory.CreateLogger<Program>(); // Create a logger for the Program class
+                logger.LogError(ex, "An error occurred during migration"); // Log the error message    
+            }
 
+            #endregion
+            #region DataSeeding 
+          //  StoreContextSeed.SeedAsync(StoreContext);
+            #endregion
             #region Configur - Http rquest pipline 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
