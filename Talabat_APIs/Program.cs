@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 using System.Threading.Tasks;
+using Talabat.Core.Entities;
+using Talabat.Core.Repositories;
+using Talabat.Repository;
 using Talabat.Repository.Data;
+using Talabat_APIs.Helpers;
 
 namespace Talabat_APIs
 {
@@ -22,6 +26,11 @@ namespace Talabat_APIs
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+            //   builder.Services.AddScoped<IGenericRepositort<Product>, GenericRepository<Product>>(); // Register the generic repository for Product entity
+            //Make it generic to work with any entity type
+            builder.Services.AddScoped(typeof(IGenericRepositort<>), typeof(GenericRepository<>)); // Register the generic repository for any entity type
+            //builder.Services.AddAutoMapper(M=>M.AddProfile(new MappingProfiles())); // Register AutoMapper with the mapping profiles
+            builder.Services.AddAutoMapper(typeof(MappingProfiles));
             #endregion
 
             var app = builder.Build();
