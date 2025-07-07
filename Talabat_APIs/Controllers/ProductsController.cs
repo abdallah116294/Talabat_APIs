@@ -29,22 +29,11 @@ namespace Talabat_APIs.Controllers
         [HttpGet(Name = "api/GetProduct")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse<IReadOnlyList<Product>>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorsApiResponse))]
-        public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? Sort)
+        public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts([FromQuery]ProductSpecParams Params)
         {
-            var Spec = new ProductWithBrandAndTypeSpecification(Sort); // This will get all products
+            var Spec = new ProductWithBrandAndTypeSpecification(Params); // This will get all products
             var products = await _productRepository.GetAllWithSpecAsync(Spec);
             var MappedProducts = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDTO>>(products);
-            //  OkObjectResult result = new OkObjectResult(MappedProducts);
-            //var finalResult=  new APIResponse<IEnumerable<Product>>
-           // { 
-           //     Data =products,
-           //     Status = "Success",
-           // };
-           //var  finalResult = new APIResponse<IEnumerable<ProductToReturnDTO>>
-           // {
-           //     Data = MappedProducts,
-           //     Status = "Success",
-           // };
            if(MappedProducts == null || !MappedProducts.Any())
             {
                 return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound));
@@ -92,8 +81,6 @@ namespace Talabat_APIs.Controllers
             {
                 return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound));
             }
-            //if  I make an DTO for types
-            //  var MappedProductTypes = _mapper.Map<IEnumerable<ProductType>, IEnumerable<ProductTypeToReturnDTO>>(productTypes);
             return Ok(new APIResponse<IEnumerable<ProductType>>
             {
                 Data = productTypes,
@@ -111,8 +98,6 @@ namespace Talabat_APIs.Controllers
             {
                 return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound));
             }
-            //if  I make an DTO for brands
-            //  var MappedProductBrands = _mapper.Map<IEnumerable<ProductBrand>, IEnumerable<ProductBrandToReturnDTO>>(productBrands);
             return Ok(new APIResponse<IReadOnlyList<ProductBrand>>
             {
                 Data = productBrands,
