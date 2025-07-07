@@ -14,6 +14,10 @@ namespace Talabat.Core.Specification
        public  Expression<Func<T, bool>> Criteria { get; set; }
         //Signature for Property For List of Includes => Include Condition 
         public List<Expression<Func<T,object>>> Includes { get; set; }
-
+        //Signature for Property For Sorting => OrderBy Se Condition
+        public Expression<Func<T,object>>OrderBy  { get; set; }
+        //Signature for Property For Sorting Descending => OrderByDescending Condition
+        public Expression<Func<T, object>> OrderByDescending { get; set; }
+        //Signature for 
     }
 }

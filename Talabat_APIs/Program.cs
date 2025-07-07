@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 using System.Threading.Tasks;
@@ -5,7 +6,10 @@ using Talabat.Core.Entities;
 using Talabat.Core.Repositories;
 using Talabat.Repository;
 using Talabat.Repository.Data;
+using Talabat_APIs.Errors;
+using Talabat_APIs.Extensions;
 using Talabat_APIs.Helpers;
+using Talabat_APIs.MiddelWares;
 
 namespace Talabat_APIs
 {
@@ -26,11 +30,28 @@ namespace Talabat_APIs
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+            builder.Services.AddApplicationServices();
             //   builder.Services.AddScoped<IGenericRepositort<Product>, GenericRepository<Product>>(); // Register the generic repository for Product entity
             //Make it generic to work with any entity type
-            builder.Services.AddScoped(typeof(IGenericRepositort<>), typeof(GenericRepository<>)); // Register the generic repository for any entity type
-            //builder.Services.AddAutoMapper(M=>M.AddProfile(new MappingProfiles())); // Register AutoMapper with the mapping profiles
-            builder.Services.AddAutoMapper(typeof(MappingProfiles));
+            //builder.Services.AddScoped(typeof(IGenericRepositort<>), typeof(GenericRepository<>)); // Register the generic repository for any entity type
+            ////builder.Services.AddAutoMapper(M=>M.AddProfile(new MappingProfiles())); // Register AutoMapper with the mapping profiles
+            //builder.Services.AddAutoMapper(typeof(MappingProfiles));
+            //builder.Services.Configure<ApiBehaviorOptions>(optins =>
+            //{
+            //    // Disable the default model state validation behavior
+            //    optins.InvalidModelStateResponseFactory=(actionContext)=> 
+            //    {
+            //        var errors=actionContext.ModelState.Where(e => e.Value.Errors.Count > 0)
+            //            .SelectMany(x => x.Value.Errors)
+            //            .Select(x => x.ErrorMessage)
+            //            .ToArray(); // Get the error messages from the model state
+            //        var ValidationErrors = new ApiVialidationErrorResponse()
+            //        {
+            //            Errors = errors
+            //        };
+            //        return new BadRequestObjectResult(ValidationErrors);
+            //    };
+            //});
             #endregion
 
             var app = builder.Build();
@@ -64,10 +85,12 @@ namespace Talabat_APIs
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseMiddleware<ExceptionMiddleWare>();
+                //User Swagger Extensions 
+                app.UserSwaggerMiddleWares();
             }
             app.UseStaticFiles();
+            app.UseStatusCodePagesWithReExecute("/errors/{0}");
             app.UseHttpsRedirection();
 
             app.UseAuthorization();

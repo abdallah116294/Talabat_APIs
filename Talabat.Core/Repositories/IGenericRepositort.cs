@@ -14,7 +14,7 @@ namespace Talabat.Core.Repositories
         //Get Entity of Type T by Id        
         Task<T> GetByIdAsync(int id);
         //Get All Entities of Type T
-        Task<IEnumerable<T>> GetAllAsync();
+        Task<IReadOnlyList<T>> GetAllAsync();
         //Task<T> AddAsync(T entity);
         //Task UpdateAsync(T entity);
         //Task DeleteAsync(T entity);
@@ -22,7 +22,7 @@ namespace Talabat.Core.Repositories
         //Task<bool> ExistsAsync(int id);
         #endregion
         #region With Specification
-        Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T>Spec);
+        Task<IReadOnlyList<T>> GetAllWithSpecAsync(ISpecification<T>Spec);
         Task<T> GetByIdWithSpecAsync(ISpecification<T>Spec);
         #endregion
     }

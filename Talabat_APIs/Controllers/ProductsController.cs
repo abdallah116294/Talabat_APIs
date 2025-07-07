@@ -6,30 +6,37 @@ using Talabat.Core.Repositories;
 using Talabat.Core.Specification;
 using Talabat.Repository;
 using Talabat_APIs.DTO;
+using Talabat_APIs.Errors;
 
 namespace Talabat_APIs.Controllers
 {
     public class ProductsController : APIBaseController
     {
         private readonly IGenericRepositort<Product> _productRepository;
+        private readonly IGenericRepositort<ProductType> _productTypeRepository;
+        private readonly IGenericRepositort<ProductBrand> _productBrandRepo;
         private readonly IMapper _mapper;
 
         // private readonly ISpecification<Product> _productSpecification;
-        public ProductsController(IGenericRepositort<Product> productRepo,IMapper mapper)
+        public ProductsController(IGenericRepositort<Product> productRepo,IMapper mapper,IGenericRepositort<ProductType> productTypeRepo,IGenericRepositort<ProductBrand>productBrandRepo )
         {
             _productRepository = productRepo;
             _mapper = mapper;
+            _productTypeRepository = productTypeRepo;
+            _productBrandRepo = productBrandRepo;
         }
         //Get all products
         [HttpGet(Name = "api/GetProduct")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse<IReadOnlyList<Product>>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorsApiResponse))]
+        public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? Sort)
         {
-            var Spec = new ProductWithBrandAndTypeSpecification(); // This will get all products
+            var Spec = new ProductWithBrandAndTypeSpecification(Sort); // This will get all products
             var products = await _productRepository.GetAllWithSpecAsync(Spec);
-            var MappedProducts = _mapper.Map<IEnumerable<Product>, IEnumerable<ProductToReturnDTO>>(products);
+            var MappedProducts = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDTO>>(products);
             //  OkObjectResult result = new OkObjectResult(MappedProducts);
             //var finalResult=  new APIResponse<IEnumerable<Product>>
-           // {
+           // { 
            //     Data =products,
            //     Status = "Success",
            // };
@@ -38,7 +45,13 @@ namespace Talabat_APIs.Controllers
            //     Data = MappedProducts,
            //     Status = "Success",
            // };
-           var finalProducts = new APIResponse<IEnumerable<ProductToReturnDTO>>
+           if(MappedProducts == null || !MappedProducts.Any())
+            {
+                return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound));
+            }
+            //return Ok(MappedProducts);
+            //return result;
+            var finalProducts = new APIResponse<IReadOnlyList<ProductToReturnDTO>>
             {
                 Data = MappedProducts,
                 Status = "Success",
@@ -49,6 +62,8 @@ namespace Talabat_APIs.Controllers
         }
         //Get Product by Id
         [HttpGet("{id}", Name = "api/GetProductById")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse<ProductToReturnDTO>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorsApiResponse))]
         public async Task<ActionResult<ProductToReturnDTO>> GetProductById(int id)
         {
             var Spec = new ProductWithBrandAndTypeSpecification(id);
@@ -56,11 +71,8 @@ namespace Talabat_APIs.Controllers
             var MappedProduct = _mapper.Map<Product, ProductToReturnDTO>(product);
             if (MappedProduct == null)
             {
-                return NotFound(new APIResponse<ProductToReturnDTO>
-                {
-                    Data = null,
-                    Status = "Not Found",
-                });
+                return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound));
+
             }
             var result= new APIResponse<ProductToReturnDTO>
             {
@@ -68,6 +80,44 @@ namespace Talabat_APIs.Controllers
                 Status = "Success", 
             };
             return Ok(result);
+        }
+        //Get All Product Types
+        [HttpGet("GetProtductTypes")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse<ProductType>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorsApiResponse))]
+        public async Task<ActionResult<IReadOnlyList<ProductType>>> GetProductType()
+        {
+            var productTypes = await _productTypeRepository.GetAllAsync();
+            if (productTypes == null)
+            {
+                return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound));
+            }
+            //if  I make an DTO for types
+            //  var MappedProductTypes = _mapper.Map<IEnumerable<ProductType>, IEnumerable<ProductTypeToReturnDTO>>(productTypes);
+            return Ok(new APIResponse<IEnumerable<ProductType>>
+            {
+                Data = productTypes,
+                Status = "Successs"
+            });
+        }
+        //Get All Product Brands
+        [HttpGet("GetProductBrands")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse<ProductBrand>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorsApiResponse))]
+        public async Task<ActionResult<IReadOnlyList<ProductBrand>>> GetProductBrand()
+        {
+            var productBrands = await _productBrandRepo.GetAllAsync();
+            if (productBrands == null)
+            {
+                return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound));
+            }
+            //if  I make an DTO for brands
+            //  var MappedProductBrands = _mapper.Map<IEnumerable<ProductBrand>, IEnumerable<ProductBrandToReturnDTO>>(productBrands);
+            return Ok(new APIResponse<IReadOnlyList<ProductBrand>>
+            {
+                Data = productBrands,
+                Status = "Successs"
+            });
         }
     }
 }

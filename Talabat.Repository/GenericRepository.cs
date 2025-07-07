@@ -19,11 +19,11 @@ namespace Talabat.Repository
             _storeContext = storeContext;
         }
         #region Without Specification
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IReadOnlyList<T>> GetAllAsync()
         {
             if (typeof(T) == typeof(Product))
             {
-                return (IEnumerable<T>)await _storeContext.Products.Include(p => p.ProductBrand).Include(p => p.ProductType).ToListAsync();
+                return (IReadOnlyList<T>)await _storeContext.Products.Include(p => p.ProductBrand).Include(p => p.ProductType).ToListAsync();
             }
             return await _storeContext.Set<T>().ToListAsync();
             //Applay the specification Design Pattern=> To make Query Dynamic 
@@ -50,7 +50,7 @@ namespace Talabat.Repository
         #endregion
 
         #region With Specification
-        public async Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> Spec)
+        public async Task<IReadOnlyList<T>> GetAllWithSpecAsync(ISpecification<T> Spec)
         {
            return await ApplaySpecification(Spec).ToListAsync();
         }

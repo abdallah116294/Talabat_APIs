@@ -18,13 +18,24 @@ namespace Talabat.Repository
             {
                 Query = Query.Where(specification.Criteria);
             }
+            //Check if OrderBy is not null and then apply it
+            if(specification.OrderBy != null)
+            {
+                Query = Query.OrderBy(specification.OrderBy);
+            }
+            //Check if OrderByDescending is not null and then apply it
+            if (specification.OrderByDescending != null)
+            {
+                Query = Query.OrderByDescending(specification.OrderByDescending);
+            }
             //use Aggregate Function to Include Multiple Includes
-             Query
-                = specification.Includes.Aggregate(Query, (current, include) => current.Include(include));
+            Query
+               = specification.Includes.Aggregate(Query, (current, include) => current.Include(include));
             //foreach (var include in specification.Includes)
             //{
             //    Query = Query.Include(include);
             //}
+
             return Query;
         }
     }
