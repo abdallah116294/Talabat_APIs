@@ -7,6 +7,7 @@ using Talabat.Core.Specification;
 using Talabat.Repository;
 using Talabat_APIs.DTO;
 using Talabat_APIs.Errors;
+using Talabat_APIs.Helpers;
 
 namespace Talabat_APIs.Controllers
 {
@@ -29,25 +30,29 @@ namespace Talabat_APIs.Controllers
         [HttpGet(Name = "api/GetProduct")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse<IReadOnlyList<Product>>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorsApiResponse))]
-        public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts([FromQuery]ProductSpecParams Params)
+        public async Task<ActionResult<Pagination<ProductToReturnDTO>>> GetProducts([FromQuery] ProductSpecParams Params)
         {
             var Spec = new ProductWithBrandAndTypeSpecification(Params); // This will get all products
             var products = await _productRepository.GetAllWithSpecAsync(Spec);
             var MappedProducts = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDTO>>(products);
-           if(MappedProducts == null || !MappedProducts.Any())
+            if (MappedProducts == null || !MappedProducts.Any())
             {
                 return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound));
             }
-            //return Ok(MappedProducts);
-            //return result;
-            var finalProducts = new APIResponse<IReadOnlyList<ProductToReturnDTO>>
-            {
+            var countSpec = new ProductWithFiltrationForCountAsync(Params) ;
+            var returnedProducts = new Pagination<ProductToReturnDTO>()
+           {
                 Data = MappedProducts,
+                PageIndex = Params.PageIndex,
+                PageSize = Params.PageSize,
+                Count = await _productRepository.CountAsync(countSpec),
+            };
+            var result = new APIResponse<Pagination<ProductToReturnDTO>>()
+            {
+                Data = returnedProducts,
                 Status = "Success",
             };
-            return Ok(finalProducts);
-            // return Ok(MappedProducts);
-            //  return result;
+            return Ok(result);;
         }
         //Get Product by Id
         [HttpGet("{id}", Name = "api/GetProductById")]

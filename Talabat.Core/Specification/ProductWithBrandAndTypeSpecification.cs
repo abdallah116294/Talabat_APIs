@@ -13,7 +13,7 @@ namespace Talabat.Core.Specification
             : base(P=>
             (!Params.BrandId.HasValue||P.ProductBrandId== Params.BrandId)
             && (!Params.TypeId.HasValue || P.ProductTypeId == Params.TypeId)
-            )
+            )    
         {
             Includes.Add(p => p.ProductBrand);
             Includes.Add(p => p.ProductType);
@@ -32,6 +32,7 @@ namespace Talabat.Core.Specification
                         break;
                 }
             }
+            ApplyPagineation(Params.PageSize * (Params.PageIndex - 1), Params.PageSize);
 
         }
         public ProductWithBrandAndTypeSpecification(int id) : base(p=>p.Id==id)

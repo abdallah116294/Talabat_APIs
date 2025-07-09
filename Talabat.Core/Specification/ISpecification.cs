@@ -18,6 +18,9 @@ namespace Talabat.Core.Specification
         public Expression<Func<T,object>>OrderBy  { get; set; }
         //Signature for Property For Sorting Descending => OrderByDescending Condition
         public Expression<Func<T, object>> OrderByDescending { get; set; }
-        //Signature for 
+        //Signature for Pagineation 
+        public int Take { get; set; }
+        public int Skip { get; set; }
+        public bool IsPagineantionEnable { get; set; }
     }
 }

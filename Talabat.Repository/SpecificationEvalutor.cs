@@ -28,6 +28,10 @@ namespace Talabat.Repository
             {
                 Query = Query.OrderByDescending(specification.OrderByDescending);
             }
+            if (specification.IsPagineantionEnable)
+            {
+                Query = Query.Skip(specification.Skip).Take(specification.Take);
+            }
             //use Aggregate Function to Include Multiple Includes
             Query
                = specification.Includes.Aggregate(Query, (current, include) => current.Include(include));
