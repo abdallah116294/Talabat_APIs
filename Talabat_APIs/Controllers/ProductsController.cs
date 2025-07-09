@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Talabat.Core.Entities;
 using Talabat.Core.Repositories;
 using Talabat.Core.Specification;
@@ -53,6 +54,36 @@ namespace Talabat_APIs.Controllers
                 Status = "Success",
             };
             return Ok(result);;
+        }
+        // Search Products by Name
+        [HttpGet("SearchProductByName")]
+        public async Task<ActionResult<IReadOnlyList<ProductToReturnDTO>>> SearchProductsByName([FromQuery]string Search)
+        {
+            //Check if the search string is null or empty   
+            if (string.IsNullOrEmpty(Search))
+            {
+                return BadRequest(new ErrorsApiResponse(StatusCodes.Status400BadRequest, "Search term cannot be null or empty."));
+            }
+            //Create a specification for searching products by name
+            //This specification will filter products based on the search term provided in the query string
+            //The search term is converted to lowercase to ensure case-insensitive matching
+
+            var Spec = new ProductWithSearchSpecification(Search);
+            //Get all products based on the specification
+            var products = await _productRepository.GetAllWithSpecAsync(Spec);
+            //Map the products to DTOs
+            var MappedProducts = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDTO>>(products);
+            //Check if the mapped products are null or empty
+            if (MappedProducts == null || !MappedProducts.Any())
+            {
+                return NotFound(new ErrorsApiResponse(StatusCodes.Status404NotFound, "No products found with the specified criteria."));
+            }
+            //Return the mapped products in a successful API response
+            return Ok(new APIResponse<IReadOnlyList<ProductToReturnDTO>>
+            {
+                Data = MappedProducts,
+                Status = "Success"
+            });
         }
         //Get Product by Id
         [HttpGet("{id}", Name = "api/GetProductById")]
