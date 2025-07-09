@@ -16,11 +16,11 @@ namespace Talabat.Core.Specification
         }
         public ProductWithSearchSpecification(int id) : base(p => p.Id == id)
         {
-            Includes.Add(p => p.ProductBrand);
+            Includes.Add(p => p.ProductBrand);     
             Includes.Add(p => p.ProductType);
         }
     }
 
 
 }
-
+  
