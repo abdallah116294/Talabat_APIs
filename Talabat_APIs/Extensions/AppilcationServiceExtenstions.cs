@@ -29,6 +29,7 @@ namespace Talabat_APIs.Extensions
                     return new BadRequestObjectResult(ValidationErrors);
                 };
             });
+            Services.AddScoped<IBasketRepository, BasketRepository>(); // Register the BasketRepository for IBasketRepository interface
             return Services;
         }
     }
