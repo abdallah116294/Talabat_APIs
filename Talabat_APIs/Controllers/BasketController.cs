@@ -16,7 +16,7 @@ namespace Talabat_APIs.Controllers
             _basketRepository = basketRepository;
         }
         //GET 
-        [HttpGet("{id}", Name = "GetBasket")]
+        [HttpGet("{BasketId}")]
         public async Task<ActionResult<CustomerBasket>> GetCustomerBasket(string BasketId)
         {
             if (BasketId != null)
@@ -33,7 +33,7 @@ namespace Talabat_APIs.Controllers
                     Status = "Success"
                 };
                  return Ok(response);
-                //return response  is null?new CustomerBasket(BasketId):response;
+                //return response  is null?new CustomerBasket(Id):response;
 
             }
             else
@@ -43,18 +43,27 @@ namespace Talabat_APIs.Controllers
         }
 
         //Update
-        [HttpPost("CreatBasket")]
+        [HttpPost]
         public async Task<ActionResult<CustomerBasket>> UpdateCustomerBasket(CustomerBasket basket)
         {
             if (basket == null || string.IsNullOrEmpty(basket.Id))
             {
                 return BadRequest(new ErrorsApiResponse(StatusCodes.Status400BadRequest, "Invalid basket data."));
             }
-            var updatedBasket = await _basketRepository.UpdateBasketAsync(basket);
-            return CreatedAtRoute("GetBasket", new { id = updatedBasket.Id }, updatedBasket);
+            var CreatedOrUpdatedBasket = await _basketRepository.UpdateBasketAsync(basket);
+            if (CreatedOrUpdatedBasket is null)
+            {
+                return BadRequest(new ErrorsApiResponse(StatusCodes.Status400BadRequest, "Failed to update or create the basket."));
+            }
+            var response = new APIResponse<CustomerBasket>
+            {
+                Data = CreatedOrUpdatedBasket,
+                Status = "Success"
+            };
+            return Ok(response);
         }
         // DeLeTe
-        [HttpPost("{id}",Name ="DeleteBasket")]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteCustomerBasket(string id)
         {
             if (string.IsNullOrEmpty(id))
