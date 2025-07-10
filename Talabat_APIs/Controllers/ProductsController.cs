@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -28,6 +30,7 @@ namespace Talabat_APIs.Controllers
             _productBrandRepo = productBrandRepo;
         }
         //Get all products
+        [Authorize(AuthenticationSchemes=JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet(Name = "api/GetProduct")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse<IReadOnlyList<Product>>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorsApiResponse))]
@@ -56,6 +59,7 @@ namespace Talabat_APIs.Controllers
             return Ok(result);;
         }
         // Search Products by Name
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("SearchProductByName")]
         public async Task<ActionResult<IReadOnlyList<ProductToReturnDTO>>> SearchProductsByName([FromQuery]string Search)
         {
@@ -86,6 +90,7 @@ namespace Talabat_APIs.Controllers
             });
         }
         //Get Product by Id
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("{id}", Name = "api/GetProductById")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse<ProductToReturnDTO>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorsApiResponse))]

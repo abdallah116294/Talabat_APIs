@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Talabat.Core.Entities;
 using Talabat.Core.Entities.Identity;
+using Talabat.Core.Repositories.Servcies;
 using Talabat_APIs.DTO;
 using Talabat_APIs.Errors;
 
@@ -12,9 +13,13 @@ namespace Talabat_APIs.Controllers
     public class AccountsController : APIBaseController
     {
         private readonly UserManager<AppUser> _userManager;
-        public AccountsController(UserManager<AppUser> userManager)
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly ITokenService _tokenService; // Assuming you have a token service for generating JWT tokens
+        public AccountsController(UserManager<AppUser> userManager, SignInManager<AppUser>signInManager,ITokenService tokenService)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
+            _tokenService = tokenService; // Initialize the token service
         }
         //Register
         [HttpPost("Register")]
@@ -38,7 +43,7 @@ namespace Talabat_APIs.Controllers
                 DisplayName = User.DisplayName,
                 Email = User.Email,
                 //Token= await _userManager.GenerateEmailConfirmationTokenAsync(User)
-                Token = "This will be Here A token " // Placeholder for token generation, actual implementation will vary
+                Token = await _tokenService.CreateTokenAsync(User,_userManager)    // Placeholder for token generation, actual implementation will vary
             };
             return Ok(new APIResponse<UserDTO>()
             {
@@ -55,8 +60,13 @@ namespace Talabat_APIs.Controllers
             {
                 return Unauthorized(new ErrorsApiResponse(StatusCodes.Status401Unauthorized, "Invalid email or password."));
             }
-            var result = await _userManager.CheckPasswordAsync(User, login.Password);
-            if (!result)
+            //var result = await _userManager.CheckPasswordAsync(User, login.Password);
+            //if (!result)
+            //{
+            //    return Unauthorized(new ErrorsApiResponse(StatusCodes.Status401Unauthorized, "Invalid email or password."));
+            //}
+            var signInResult = await _signInManager.CheckPasswordSignInAsync(User, login.Password,false);
+            if (!signInResult.Succeeded)
             {
                 return Unauthorized(new ErrorsApiResponse(StatusCodes.Status401Unauthorized, "Invalid email or password."));
             }
@@ -65,7 +75,7 @@ namespace Talabat_APIs.Controllers
                 DisplayName = User.DisplayName,
                 Email = User.Email,
                 //Token= await _userManager.GenerateEmailConfirmationTokenAsync(User)
-                Token = "This will be Here A token " // Placeholder for token generation, actual implementation will vary
+                Token = await _tokenService.CreateTokenAsync(User, _userManager)// Placeholder for token generation, actual implementation will vary
             };
             return Ok(new APIResponse<UserDTO>()
             {
