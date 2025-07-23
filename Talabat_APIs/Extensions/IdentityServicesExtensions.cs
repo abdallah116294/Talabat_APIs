@@ -25,7 +25,8 @@ namespace Talabat_APIs.Extensions
                     Options.Password.RequireLowercase = false;
                 }
                 )
-                .AddEntityFrameworkStores<AppIdentityDbContext>();
+                .AddEntityFrameworkStores<AppIdentityDbContext>()
+                .AddDefaultTokenProviders();//✅ this is what's missing
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(
                 Options =>

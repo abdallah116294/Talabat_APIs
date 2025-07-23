@@ -78,6 +78,10 @@ namespace Talabat_APIs
             {
                 Options.UseSqlServer(builder.Configuration.GetConnectionString("Identity"));
             });
+            builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("EmialConfiguration"));
+            var emailConfig = builder.Configuration.GetSection("EmialConfiguration").Get<EmailConfiguration>();
+            builder.Services.AddSingleton(emailConfig); // Register EmailConfiguration as a singleton service
+            builder.Services.AddScoped<IEmailService, EmailService>(); // Register the email service    
             builder.Services.AddApplicationServices();
             //Extension method to add application services for Authentication, Authorization, and Identity
             var Configuration=builder.Configuration; // Get the configuration from the builder
