@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using Talabat.Core.Entities;
 using Talabat.Core.Entities.Identity;
 using Talabat.Core.Repositories.Servcies;
@@ -81,6 +85,79 @@ namespace Talabat_APIs.Controllers
             {
                 Data = response,
                 Status = "Success"
+            });
+        }
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("GetCurrentUser")]
+        public async Task<ActionResult<UserDTO>> GetCurrentUser()
+        {
+            // This method retrieves the currently logged-in user based on the JWT token
+            // and returns their details along with a JWT token.
+            var email=    User.FindFirstValue(ClaimTypes.Email)??User.FindFirst("email")?.Value;
+            var user= await _userManager.FindByEmailAsync(email);
+            if (user == null)       
+          
+            {
+                return Unauthorized(new ErrorsApiResponse(StatusCodes.Status401Unauthorized, "User not found."));
+            }
+            var response = new UserDTO()
+            {
+                DisplayName = user.DisplayName,
+                Email = user.Email,
+                //Token= await _userManager.GenerateEmailConfirmationTokenAsync(User)
+                Token = await _tokenService.CreateTokenAsync(user, _userManager)// Placeholder for token generation, actual implementation will vary
+            };
+            return Ok(new APIResponse<UserDTO>()
+            {
+                Data = response,
+                Status = "Success"
+            });
+        }
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("GetUserAddress")]
+        public async   Task<ActionResult<Address>> GetCurrentUserAddress() 
+        {
+            var Email = User.FindFirstValue(ClaimTypes.Email);
+            var user = await _userManager.FindByEmailAsync(Email);
+            if (user == null)
+            {
+                return Unauthorized(new ErrorsApiResponse(StatusCodes.Status401Unauthorized, "User not found."));
+            }
+            //Agger Loading , Lazy Loading 
+
+            var response = new Address()
+            {
+                FirstName = user.DisplayName,
+                LastName = user.UserName,
+                City = user.Address.City,
+                Street = user.Address.Street,
+                Country = user.Address.Country,
+            };
+            return Ok(new APIResponse<Address>()
+            {
+                Data = response,
+                Status = "Success"
+            });
+        }
+
+        [HttpGet("GetAllUsers")]
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetAllUsers() 
+        {
+            var Users = _userManager.Users.ToList();
+            if (Users.IsNullOrEmpty())
+            {
+                return NotFound("there is no User Found ");
+            }
+            var result = Users.Select(u => new UserDTO
+            {
+                DisplayName = u.DisplayName,
+                Email = u.Email,
+            });
+
+            return Ok(new APIResponse<IEnumerable<UserDTO>>()
+            {
+                Data = result,
+                Status = "success"
             });
         }
     }

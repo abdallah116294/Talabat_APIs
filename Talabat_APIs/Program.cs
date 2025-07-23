@@ -12,6 +12,7 @@ using Talabat.Core.Repositories;
 using Talabat.Repository;
 using Talabat.Repository.Data;
 using Talabat.Repository.Identity;
+using Talabat.Service;
 using Talabat_APIs.Errors;
 using Talabat_APIs.Extensions;
 using Talabat_APIs.Helpers;
