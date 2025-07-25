@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Talabat.Core.Entities;
 using Talabat.Core.Repositories;
+using Talabat_APIs.DTO;
 using Talabat_APIs.Errors;
 
 namespace Talabat_APIs.Controllers
@@ -10,10 +12,12 @@ namespace Talabat_APIs.Controllers
     public class BasketController : APIBaseController
     {
         private readonly IBasketRepository _basketRepository;
+        private readonly IMapper _mapper;
 
-        public BasketController(IBasketRepository basketRepository)
+        public BasketController(IBasketRepository basketRepository,IMapper mapper)
         {
             _basketRepository = basketRepository;
+            _mapper=mapper;
         }
         //GET 
         [HttpGet("{BasketId}")]
@@ -29,7 +33,7 @@ namespace Talabat_APIs.Controllers
                 }
                var response= new APIResponse<CustomerBasket>
                 {
-                    Data = basket,
+                    Data = basket,   
                     Status = "Success"
                 };
                  return Ok(response);
@@ -42,14 +46,16 @@ namespace Talabat_APIs.Controllers
             }
         }
 
-        //Update
+        //Update Or Create 
         [HttpPost]
+        //Get an error while mapping from CustomerBasket to CustomerBasketDTO I will solve it later 
         public async Task<ActionResult<CustomerBasket>> UpdateCustomerBasket(CustomerBasket basket)
         {
             if (basket == null || string.IsNullOrEmpty(basket.Id))
             {
                 return BadRequest(new ErrorsApiResponse(StatusCodes.Status400BadRequest, "Invalid basket data."));
             }
+           // var MappedCustomerBasket = _mapper.Map<CustomerBasketDTO, CustomerBasket>(basket);
             var CreatedOrUpdatedBasket = await _basketRepository.UpdateBasketAsync(basket);
             if (CreatedOrUpdatedBasket is null)
             {

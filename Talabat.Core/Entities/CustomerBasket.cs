@@ -8,6 +8,9 @@ namespace Talabat.Core.Entities
 {
     public class CustomerBasket
     {
+        public CustomerBasket() // 👈 Add this
+        {
+        }
         public CustomerBasket(string basketId)
         {
             BasketId = basketId;

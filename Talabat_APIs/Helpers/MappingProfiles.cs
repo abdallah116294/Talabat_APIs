@@ -14,6 +14,10 @@ namespace Talabat_APIs.Helpers
                 .ForMember(d=>d.ProductBrand,o=>o.MapFrom(s=>s.ProductBrand.Name))
                 .ForMember(d => d.PictureUrl, o => o.MapFrom<ProductPictureURLResolver>()); // Custom resolver for PictureUrl
             CreateMap<Address, AddressDTO>().ReverseMap();
+            CreateMap<CustomerBasketDTO, CustomerBasket>()
+                .ConstructUsing(src=>new CustomerBasket(src.Id))
+                .ForMember(dest=>dest.Items,opt=>opt.MapFrom(src=>src.Itmes));
+            CreateMap<BasketItmeDTO, BasketItem>();
         }
     }
 }
