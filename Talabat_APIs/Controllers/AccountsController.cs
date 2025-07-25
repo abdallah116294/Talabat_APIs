@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +14,7 @@ using Talabat.Core.Repositories.Servcies;
 using Talabat.Service;
 using Talabat_APIs.DTO;
 using Talabat_APIs.Errors;
+using Talabat_APIs.Extensions;
 
 namespace Talabat_APIs.Controllers
 {
@@ -23,17 +25,26 @@ namespace Talabat_APIs.Controllers
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _tokenService; // Assuming you have a token service for generating JWT tokens
         private readonly IEmailService _emailService;
-        public AccountsController(UserManager<AppUser> userManager, SignInManager<AppUser>signInManager,ITokenService tokenService,IEmailService emailService)
+        private readonly IMapper _mapper;
+        public AccountsController(UserManager<AppUser> userManager, SignInManager<AppUser>signInManager,ITokenService tokenService,IEmailService emailService,IMapper mapper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService; // Initialize the token service
             _emailService = emailService;
+            _mapper = mapper;
         }
         //Register
         [HttpPost("Register")]
         public async Task<ActionResult<UserDTO>> Register(RegisterDTO register)
         {
+            //Check if the email already exists in the database
+            var existingUser = await _userManager.FindByEmailAsync(register.Email);
+            if (existingUser != null)
+            { 
+                // If the email already exists, return a BadRequest response with an error message
+                return BadRequest(new ErrorsApiResponse(StatusCodes.Status400BadRequest, "Email is already registered"));
+            }
             var User = new AppUser()
             {
                 DisplayName = register.DisplayName,
@@ -45,6 +56,12 @@ namespace Talabat_APIs.Controllers
             var result = await _userManager.CreateAsync(User, register.Password);
             if (!result.Succeeded)
             {
+                //Check if the error due to duplicate email
+                var duplicateEmailError = result.Errors.FirstOrDefault(e => e.Code == "Email");
+                if (duplicateEmailError != null)
+                {
+                    return BadRequest(new ErrorsApiResponse(StatusCodes.Status400BadRequest, "Email already exists."));
+                }
                 return BadRequest(new ErrorsApiResponse(StatusCodes.Status400BadRequest));
             }
             var response = new UserDTO()
@@ -167,31 +184,51 @@ namespace Talabat_APIs.Controllers
         }
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("GetUserAddress")]
-        public async   Task<ActionResult<Address>> GetCurrentUserAddress() 
+        public async   Task<ActionResult<AddressDTO>> GetCurrentUserAddress() 
         {
             var Email = User.FindFirstValue(ClaimTypes.Email);
-            var user = await _userManager.FindByEmailAsync(Email);
+            //var user = await _userManager.FindByEmailAsync(Email);
+            var user = await _userManager.FindUserWithAddressAsync(User);
             if (user == null)
             {
                 return Unauthorized(new ErrorsApiResponse(StatusCodes.Status401Unauthorized, "User not found."));
             }
+            var MappedAddress = _mapper.Map<Address, AddressDTO>(user.Address);
             //Agger Loading , Lazy Loading 
-
-            var response = new Address()
+            return Ok(new APIResponse<AddressDTO>()
             {
-                FirstName = user.DisplayName,
-                LastName = user.UserName,
-                City = user.Address.City,
-                Street = user.Address.Street,
-                Country = user.Address.Country,
-            };
-            return Ok(new APIResponse<Address>()
-            {
-                Data = response,
+                Data = MappedAddress,
                 Status = "Success"
             });
         }
-
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPut("UpdateUserAddress")]
+        public async Task<ActionResult<AddressDTO>> UpdateUserAddress([FromBody]AddressDTO UpdateAddress) 
+        {
+             var user = await _userManager.FindUserWithAddressAsync(User);
+            if(user == null)
+            {
+                return Unauthorized(new ErrorsApiResponse(StatusCodes.Status401Unauthorized, "User not found."));
+            }
+            var MappedAddress = _mapper.Map<AddressDTO, Address>(UpdateAddress);
+            MappedAddress.Id = user.Address.Id;
+            user.Address = MappedAddress;
+            var result= await  _userManager.UpdateAsync(user);
+            if(!result.Succeeded)
+            {
+                return BadRequest(new ErrorsApiResponse(StatusCodes.Status400BadRequest, "Error while updating address."));
+            }
+            return Ok(new APIResponse<AddressDTO>()
+            {
+                Data = UpdateAddress,
+                Status = "Success"
+            });
+        }
+        [HttpGet("emailExists")]
+        public async Task<ActionResult<bool>>CheckEmailExists(string Email)
+        {
+            return await _userManager.FindByEmailAsync(Email) is not null;
+        }
         [HttpGet("GetAllUsers")]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetAllUsers() 
         {
