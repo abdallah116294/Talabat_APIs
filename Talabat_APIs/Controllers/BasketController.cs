@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Talabat.Core.Entities;
@@ -20,6 +22,7 @@ namespace Talabat_APIs.Controllers
             _mapper=mapper;
         }
         //GET 
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("{BasketId}")]
         public async Task<ActionResult<CustomerBasket>> GetCustomerBasket(string BasketId)
         {
@@ -47,6 +50,7 @@ namespace Talabat_APIs.Controllers
         }
 
         //Update Or Create 
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
         //Get an error while mapping from CustomerBasket to CustomerBasketDTO I will solve it later 
         public async Task<ActionResult<CustomerBasket>> UpdateCustomerBasket(CustomerBasket basket)
@@ -69,6 +73,7 @@ namespace Talabat_APIs.Controllers
             return Ok(response);
         }
         // DeLeTe
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteCustomerBasket(string id)
         {

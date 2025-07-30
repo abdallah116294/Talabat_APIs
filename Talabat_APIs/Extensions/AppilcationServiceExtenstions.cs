@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Talabat.Core;
 using Talabat.Core.Repositories;
+using Talabat.Core.Services;
 using Talabat.Repository;
+using Talabat.Service;
 using Talabat_APIs.Errors;
 using Talabat_APIs.Helpers;
 
@@ -30,6 +33,8 @@ namespace Talabat_APIs.Extensions
                 };
             });
             Services.AddScoped<IBasketRepository, BasketRepository>(); // Register the BasketRepository for IBasketRepository interface
+            Services.AddScoped<IUnitOfWork, UnitOfWork>(); // Register the UnitOfWork for IUnitOfWork interface
+            Services.AddScoped<IOrderService, OrderService>(); // Register the OrderService for IOrderService interface
             return Services;
         }
     }

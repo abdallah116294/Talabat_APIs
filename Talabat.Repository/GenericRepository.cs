@@ -67,6 +67,11 @@ namespace Talabat.Repository
         {
             return await ApplaySpecification(Spec).CountAsync();
         }
+
+        public async Task AddAsync(T entity)
+        {
+             await _storeContext.Set<T>().AddAsync(entity);
+        }
         #endregion
 
 

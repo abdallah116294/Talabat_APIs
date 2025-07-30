@@ -6,9 +6,11 @@ using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 using System.Data.Common;
 using System.Threading.Tasks;
+using Talabat.Core;
 using Talabat.Core.Entities;
 using Talabat.Core.Entities.Identity;
 using Talabat.Core.Repositories;
+using Talabat.Core.Services;
 using Talabat.Repository;
 using Talabat.Repository.Data;
 using Talabat.Repository.Identity;
@@ -82,6 +84,8 @@ namespace Talabat_APIs
             var emailConfig = builder.Configuration.GetSection("EmialConfiguration").Get<EmailConfiguration>();
             builder.Services.AddSingleton(emailConfig); // Register EmailConfiguration as a singleton service
             builder.Services.AddScoped<IEmailService, EmailService>(); // Register the email service    
+            //builder. Services.AddScoped<IUnitOfWork, UnitOfWork>(); // Register the UnitOfWork for IUnitOfWork interface
+         //   builder. Services.AddScoped<IOrderService, OrderService>(); // Register the OrderService for IOrderService interface
             builder.Services.AddApplicationServices();
             //Extension method to add application services for Authentication, Authorization, and Identity
             var Configuration=builder.Configuration; // Get the configuration from the builder

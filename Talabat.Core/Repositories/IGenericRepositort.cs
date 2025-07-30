@@ -15,7 +15,7 @@ namespace Talabat.Core.Repositories
         Task<T> GetByIdAsync(int id);
         //Get All Entities of Type T
         Task<IReadOnlyList<T>> GetAllAsync();
-        //Task<T> AddAsync(T entity);
+        Task AddAsync(T entity);
         //Task UpdateAsync(T entity);
         //Task DeleteAsync(T entity);
         //Task<int> CountAsync();
